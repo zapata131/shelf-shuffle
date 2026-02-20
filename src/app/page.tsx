@@ -4,11 +4,12 @@ import { useState, useEffect, useRef } from "react";
 import { Sidebar } from "@/components/sidebar";
 import { GameCard } from "@/components/game-card";
 import { PrintView } from "@/components/print-view";
-import { Search, Loader2, Plus, Minus, Check, Eye } from "lucide-react";
+import { Search, Loader2, Plus, Minus, Check } from "lucide-react";
 import { useReactToPrint } from "react-to-print";
 import { BGGCollectionItem } from "@/lib/bgg";
 import { NormalizedGame } from "@/lib/normalizer";
 import { cn } from "@/lib/utils";
+import { loadGameCache, saveToGameCache } from "@/lib/cache";
 
 export default function Home() {
   const [username, setUsername] = useState("zapata131");
@@ -50,20 +51,33 @@ export default function Home() {
         }
       }
     } catch (e) {
-      console.error(e);
+      console.error("Collection fetch error:", e);
     } finally {
       setLoading(false);
     }
   };
 
-  const loadGameDetails = async (id: string) => {
+  /**
+   * Loads game details from cache if available, otherwise fetches from API.
+   */
+  const loadGameDetails = async (id: string): Promise<NormalizedGame | null> => {
+    // Check Cache first
+    const cache = loadGameCache();
+    if (cache[id]) {
+      setSelectedGame(cache[id]);
+      return cache[id];
+    }
+
     setLoadingDetails(true);
     try {
       const res = await fetch(`/api/bgg/game/${id}`);
       const data = await res.json();
       setSelectedGame(data);
+      saveToGameCache([data]);
+      return data;
     } catch (e) {
-      console.error(e);
+      console.error("Game details fetch error:", e);
+      return null;
     } finally {
       setLoadingDetails(false);
     }
@@ -75,12 +89,9 @@ export default function Home() {
     if (existing) {
       setPrintQueue(prev => prev.filter(g => g.id !== item.id));
     } else {
-      try {
-        const res = await fetch(`/api/bgg/game/${item.id}`);
-        const data = await res.json();
-        setPrintQueue(prev => [...prev, data]);
-      } catch (e) {
-        console.error("Failed to add to queue:", e);
+      const details = await loadGameDetails(item.id);
+      if (details) {
+        setPrintQueue(prev => [...prev, details]);
       }
     }
   };
@@ -97,25 +108,47 @@ export default function Home() {
     }
   };
 
+  /**
+   * Adds all games in the filtered view to the queue, utilizing batch fetching and caching.
+   */
   const addAllToQueue = async () => {
     if (collection.length === 0) return;
     setBulkLoading(true);
     try {
-      const batchSize = 20;
-      const allNormalized: NormalizedGame[] = [];
-      const filteredIds = filteredCollection.map(item => item.id);
+      const cache = loadGameCache();
+      const allToFetchIds: string[] = [];
+      const cachedItems: NormalizedGame[] = [];
 
-      for (let i = 0; i < filteredIds.length; i += batchSize) {
-        const batch = filteredIds.slice(i, i + batchSize);
+      filteredCollection.forEach(item => {
+        if (cache[item.id]) {
+          cachedItems.push(cache[item.id]);
+        } else {
+          allToFetchIds.push(item.id);
+        }
+      });
+
+      const fetchedItems: NormalizedGame[] = [];
+      const batchSize = 20;
+
+      for (let i = 0; i < allToFetchIds.length; i += batchSize) {
+        const batch = allToFetchIds.slice(i, i + batchSize);
         const ids = batch.join(",");
         const res = await fetch(`/api/bgg/game/${ids}`);
         const data = await res.json();
+
         if (Array.isArray(data)) {
-          allNormalized.push(...data);
+          fetchedItems.push(...data);
         } else {
-          allNormalized.push(data);
+          fetchedItems.push(data);
         }
       }
+
+      // Update cache with newly fetched items
+      if (fetchedItems.length > 0) {
+        saveToGameCache(fetchedItems);
+      }
+
+      const allNormalized = [...cachedItems, ...fetchedItems];
 
       setPrintQueue(prev => {
         const existingIds = new Set(prev.map(g => g.id));
@@ -123,7 +156,7 @@ export default function Home() {
         return [...prev, ...newItems];
       });
     } catch (e) {
-      console.error(e);
+      console.error("Bulk add error:", e);
     } finally {
       setBulkLoading(false);
     }
@@ -155,7 +188,7 @@ export default function Home() {
         onPrint={handlePrint}
       />
 
-      {/* Search and Collection List */}
+      {/* Collection Navigator */}
       <div className="w-80 bg-white border-r border-zinc-200 flex flex-col h-screen shadow-inner">
         <div className="p-6 border-b border-zinc-100">
           <div className="relative">
@@ -181,7 +214,7 @@ export default function Home() {
                 disabled={loading || bulkLoading || filteredCollection.length === 0}
                 className="flex-1 flex items-center justify-center gap-1.5 text-[9px] font-bold uppercase tracking-wider py-1.5 px-2 bg-zinc-50 border border-zinc-100 rounded-md hover:bg-primary/5 hover:border-primary/20 hover:text-primary transition-all disabled:opacity-50"
               >
-                {bulkLoading ? "Adding..." : "Add All"}
+                {bulkLoading ? "Caching..." : "Add All"}
               </button>
               <button
                 onClick={removeAllFromQueue}
@@ -210,7 +243,6 @@ export default function Home() {
                     : "hover:bg-zinc-50 border border-transparent"
                 )}
               >
-                {/* Visual indicator bar on the left */}
                 {inQueue && (
                   <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary shadow-[2px_0_10px_rgba(131,103,199,0.5)] z-10" />
                 )}
@@ -236,7 +268,6 @@ export default function Home() {
                   </p>
                 </div>
 
-                {/* Direct Queue Toggle Button */}
                 <span
                   onClick={(e) => toggleQueueItem(e, item)}
                   className={cn(
@@ -254,7 +285,7 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Preview Area */}
+      {/* Preview Workspace */}
       <div className="flex-1 flex flex-col items-center justify-center p-12 bg-[radial-gradient(circle_at_50%_50%,rgba(131,103,199,0.05)_0%,transparent_50%)]">
         <div className="mb-12 text-center">
           <h2 className="text-3xl font-black text-carbon-suave tracking-tighter mb-2 italic uppercase">
@@ -287,7 +318,6 @@ export default function Home() {
             )}
           </div>
 
-          {/* Selection Indicator & Actions */}
           {selectedGame && !loadingDetails && (
             <div className="absolute top-0 -right-20 flex flex-col gap-4">
               {isInQueue ? (
@@ -310,7 +340,6 @@ export default function Home() {
             </div>
           )}
 
-          {/* Scale Ref */}
           <div className="absolute -bottom-12 left-1/2 -translate-x-1/2 flex items-center gap-4 text-[10px] font-bold text-zinc-400 uppercase tracking-widest">
             <div className="h-px w-8 bg-zinc-200" />
             <span>2.5" x 3.5" (Standard Poker)</span>
@@ -319,7 +348,6 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Hidden Print Wrapper */}
       <div className="hidden">
         <PrintView ref={contentRef} queue={printQueue} settings={settings} />
       </div>

@@ -1,59 +1,57 @@
-# 🎴 Shelf Shuffler
-> "Your Collection, Dealt to You."
+# Shelf Shuffler 🃏
 
-**Shelf Shuffler** is a web-based utility that transforms your digital [BoardGameGeek](https://boardgamegeek.com) library into a physical, tactile "Catalog Deck." It bridges the gap between digital data and physical organization, allowing you to browse your collection as if it were a high-end trading card game.
+[![Next.js 15](https://img.shields.io/badge/Next.js-15-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.4-38B2AC?style=for-the-badge&logo=tailwind-css)](https://tailwindcss.com/)
+[![Framer Motion](https://img.shields.io/badge/Framer_Motion-11-ff0055?style=for-the-badge&logo=framer)](https://www.framer.com/motion/)
+[![BGG Powered](https://img.shields.io/badge/Powered_By-BoardGameGeek-2e3d8c?style=for-the-badge)](https://boardgamegeek.com)
 
-## ✨ Features
-
-- **Collection Sync**: Pulls your board game library directly from BGG XML API 2.
-- **Customizable Cards**: 2.5" x 3.5" (Standard Poker Size) card generation with togglable info (Designer, Artist, Weight, Description).
-- **Premium Design**: Fluid, high-end gallery aesthetic with buttery-smooth micro-animations.
-- **Smart Print Engine**: Generates 3x3 grids on A4/Letter pages with precise crop markers for easy cutting.
-- **Persistence**: Save your favorite print queues and customization presets via Google Authentication.
-
-## 🎨 Branding & Aesthetic
-
-Shelf Shuffler uses a curated palette for a premium, gallery-style experience:
-
-| Role | Color Name | Hex |
-| :--- | :--- | :--- |
-| **Primary** | Malva suave | `#8367C7` |
-| **Secondary** | Turquesa pastel | `#73D8D4` |
-| **Accent** | Coral deslavado | `#FF9E8A` |
-| **Background** | Blanco roto | `#F5F0E9` |
-| **Text** | Carbon suave | `#3A3A3A` |
-
-## 🛠️ Tech Stack
-
-- **Framework**: [Next.js](https://nextjs.org/) (App Router)
-- **Styling**: [Tailwind CSS v4](https://tailwindcss.com/)
-- **Database/Auth**: [Supabase](https://supabase.com/)
-- **PDF Engine**: [react-to-print](https://github.com/gregnb/react-to-print)
-- **Data Parser**: [fast-xml-parser](https://github.com/NaturalIntelligence/fast-xml-parser)
-
-## 🗺️ Roadmap
-
-### Phase 1: Foundation
-- [x] Project Initialization
-- [x] Tech Stack & Plan Definition
-- [ ] Branding Integration (CSS Variables)
-- [ ] BGG API Integration & Normalization
-
-### Phase 2: The Designer
-- [ ] TCG Card Component UI
-- [ ] Customization Sidebar
-- [ ] Fluid Animation System
-
-### Phase 3: The Library
-- [ ] Supabase Auth (Google)
-- [ ] Database Schema & RLS
-- [ ] User Settings Persistence
-
-### Phase 4: The Press
-- [ ] Print Layout & Grid Logic
-- [ ] Crop Marker Implementation
-- [ ] PDF Generation Workflow
+**Shelf Shuffler** is a premium board game catalog generator. It transforms your BoardGameGeek collection into a tactile, high-art "Catalog Deck"—perfect for shelf organization, game selection, or creating a physical record of your hobby.
 
 ---
 
-*Shelf Shuffler is a community project and is not affiliated with BoardGameGeek.*
+## 💎 The "Catalog Deck" Aesthetic
+Shelf Shuffler utilizes a specialized **Full-Art TCG design** optimized for both digital viewing and physical printing:
+- **Sectioned Title Header**: Dedicated title bars prevent obstruction of game logos on box art.
+- **Glassmorphism Overlays**: Vibe stats (players, time, weight) and summaries float on blurred, high-contrast panels.
+- **Micro-Information Footer**: Compact, icon-driven credits for designers (`User`) and artists (`SwatchBook`).
+- **Tactile Print Finish**: Subtle physical linen canvas overlays added to every card for a premium "poker card" feel.
+- **Print-Ready Perfection**: Automated 3x3 grids for A4/Letter with safety borders and cut guides.
+
+## 🚀 Features
+- **Instant BGG Sync**: Connect your collection simply by entering your BGG username.
+- **Performant Caching**: Intelligent client-side caching ensures near-instant repeat lookups and reduced API load.
+- **Dynamic Customization**: Live-toggle card components (Title, Designer, Artist, Weight, Description).
+- **Batch Processing**: Rapidly build print queues with optimized, batched API requests.
+- **Global Character Support**: Robust HTML entity decoding for flawless international titles and accents.
+
+## 🛠️ Prerequisites
+- [Node.js](https://nodejs.org/) (v18.0 or higher)
+- [npm](https://www.npmjs.com/) or [yarn](https://yarnpkg.com/)
+- An active internet connection (to fetch BGG data)
+
+## 🏁 Getting Started
+
+### 1. Installation
+Clone the repository and install dependencies:
+```bash
+git clone https://github.com/zapata131/shelf-shuffle.git
+cd shelf-shuffle
+npm install
+```
+
+### 2. Environment Setup
+Create a `.env.local` file in the root directory and add any necessary environment variables (if configured for advanced features).
+
+### 3. Running Locally
+Launch the development server:
+```bash
+npm run dev
+```
+Open [http://localhost:3000](http://localhost:3000) in your browser to start shuffling!
+
+## 📜 Attribution
+This project is **Powered by [BoardGameGeek](https://boardgamegeek.com)**.
+Data is fetched via the BGG XML API2. All board game imagery and metadata are properties of their respective creators and BoardGameGeek.
+
+---
+*Crafted with 💜 for the Board Game Community by [zapata131](https://github.com/zapata131)*
