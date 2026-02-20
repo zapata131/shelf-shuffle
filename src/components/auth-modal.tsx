@@ -4,6 +4,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Mail, Lock, Loader2, Chrome, X, UserPlus, LogIn } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import { useTranslation } from "@/lib/i18n";
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -15,6 +16,7 @@ interface AuthModalProps {
  * Maintains the premium "Catalog Deck" aesthetic.
  */
 export function AuthModal({ isOpen, onClose }: AuthModalProps) {
+  const { t } = useTranslation();
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
@@ -89,12 +91,12 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
                 {/* Header */}
                 <div className="text-center mb-8">
                   <h2 className="text-2xl font-black text-white italic uppercase tracking-tighter mb-2">
-                    {isLogin ? "Welcome Back" : "Join the Deck"}
+                    {isLogin ? t.auth.welcome : t.auth.join}
                   </h2>
                   <p className="text-zinc-400 text-sm">
                     {isLogin 
-                      ? "Sign in to manage your collection" 
-                      : "Create an account to save your decks"}
+                      ? t.auth.sign_in_desc
+                      : t.auth.sign_up_desc}
                   </p>
                 </div>
 
@@ -104,7 +106,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
                   className="w-full flex items-center justify-center gap-3 py-3 px-4 bg-white text-zinc-900 rounded-xl font-bold text-sm hover:bg-zinc-100 transition-all mb-6 group"
                 >
                   <Chrome size={18} className="group-hover:rotate-12 transition-transform" />
-                  Continue with Google
+                  {t.auth.google_button}
                 </button>
 
                 <div className="relative mb-6">
@@ -112,14 +114,14 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
                     <div className="w-full border-t border-white/5"></div>
                   </div>
                   <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-zinc-900 px-2 text-zinc-500 font-bold tracking-widest">Or</span>
+                    <span className="bg-zinc-900 px-2 text-zinc-500 font-bold tracking-widest">{t.auth.or}</span>
                   </div>
                 </div>
 
                 {/* Email Form */}
                 <form onSubmit={handleAuth} className="space-y-4">
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest ml-1">Email Address</label>
+                    <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest ml-1">{t.auth.email_label}</label>
                     <div className="relative">
                       <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500" size={16} />
                       <input
@@ -134,7 +136,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest ml-1">Password</label>
+                    <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest ml-1">{t.auth.password_label}</label>
                     <div className="relative">
                       <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500" size={16} />
                       <input
@@ -164,7 +166,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
                     ) : (
                       <>
                         {isLogin ? <LogIn size={18} /> : <UserPlus size={18} />}
-                        {isLogin ? "Sign In" : "Register Account"}
+                          {isLogin ? t.auth.sign_in_button : t.auth.register_button}
                       </>
                     )}
                   </button>
@@ -172,12 +174,12 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
 
                 {/* Toggle Link */}
                 <p className="mt-8 text-center text-zinc-500 text-xs font-medium">
-                  {isLogin ? "New to Shelf Shuffler?" : "Already have an account?"}{" "}
+                  {isLogin ? t.auth.new_to_app : t.auth.already_have_account}{" "}
                   <button
                     onClick={() => setIsLogin(!isLogin)}
                     className="text-primary hover:underline font-bold"
                   >
-                    {isLogin ? "Sign Up" : "Sign In"}
+                    {isLogin ? t.auth.sign_up_button : t.auth.sign_in_button}
                   </button>
                 </p>
               </div>

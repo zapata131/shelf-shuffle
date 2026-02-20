@@ -13,8 +13,11 @@ import { loadGameCache, saveToGameCache } from "@/lib/cache";
 import { supabase } from "@/lib/supabase";
 import { AuthModal } from "@/components/auth-modal";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTranslation } from "@/lib/i18n";
+import { LanguageSwitcher } from "@/components/language-switcher";
 
 export default function Home() {
+  const { t } = useTranslation();
   const [session, setSession] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
   const [bggInput, setBggInput] = useState("");
@@ -30,7 +33,7 @@ export default function Home() {
   const contentRef = useRef<HTMLDivElement>(null);
   const handlePrint = useReactToPrint({
     contentRef: contentRef,
-    documentTitle: `ShelfShuffler_${profile?.bgg_username || 'Collection'}`,
+    documentTitle: `${t.app.title}_${profile?.bgg_username || 'Collection'}`,
   });
 
   const [settings, setSettings] = useState({
@@ -72,9 +75,6 @@ export default function Home() {
     if (data) {
       setProfile(data);
       if (data.bgg_username) {
-        // Only fetch if collection is empty or if we want to load existing
-        // For strictly manual: we might want to check cache or DB later
-        // For now, load on initial login to populate the UI
         fetchCollection(data.bgg_username);
       }
     }
@@ -232,6 +232,7 @@ export default function Home() {
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}
       />
+      <LanguageSwitcher />
 
       {!session ? (
         /* GUEST LANDING PAGE */
@@ -246,16 +247,16 @@ export default function Home() {
                 Shelf <span className="text-primary not-italic">Shuffler</span>
               </h1>
               <p className="text-xl text-zinc-500 font-medium max-w-2xl mx-auto leading-relaxed">
-                Transform your digital BoardGameGeek library into a tactile, high-art <span className="text-zinc-900 font-bold">Catalog Deck</span>.
+                {t.app.slogan}
               </p>
             </div>
 
             {/* How it Works Grid */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {[
-                { icon: LayoutGrid, title: "1. Sync", desc: "Connect your BGG collection instantly." },
-                { icon: Zap, title: "2. Customize", desc: "Toggle designers, artists, and weights with glassmorphism overlays." },
-                { icon: Printer, title: "3. Print", desc: "Generate professional 3x3 grids ready for standard poker sleeves." }
+                { icon: LayoutGrid, title: t.landing.sync.title, desc: t.landing.sync.desc },
+                { icon: Zap, title: t.landing.customize.title, desc: t.landing.customize.desc },
+                { icon: Printer, title: t.landing.print.title, desc: t.landing.print.desc }
               ].map((step, i) => (
                 <motion.div
                   key={step.title}
@@ -279,9 +280,9 @@ export default function Home() {
                 className="px-12 py-5 bg-primary text-white rounded-2xl font-black uppercase tracking-widest text-sm shadow-xl shadow-primary/30 hover:bg-primary/90 hover:scale-105 transition-all flex items-center gap-3"
               >
                 <LogIn size={20} />
-                Get Started
+                {t.landing.get_started}
               </button>
-              <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-[0.2em]">Powered by BoardGameGeek</p>
+              <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-[0.2em]">{t.app.powered_by}</p>
             </div>
           </motion.div>
         </div>
@@ -304,11 +305,11 @@ export default function Home() {
                 {!profile?.bgg_username ? (
                   /* SETUP: Ask for BGG Username */
                   <div className="space-y-4">
-                    <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Connect Library</h3>
+                    <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-widest">{t.dashboard.connect}</h3>
                     <div className="space-y-3">
                       <input
                         type="text"
-                        placeholder="BGG Username"
+                        placeholder={t.dashboard.username_placeholder}
                         value={bggInput}
                         onChange={(e) => setBggInput(e.target.value)}
                         className="w-full px-4 py-2 bg-zinc-50 border border-zinc-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 font-medium"
@@ -318,33 +319,37 @@ export default function Home() {
                         disabled={loading || !bggInput}
                         className="w-full bg-zinc-900 text-white py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-zinc-800 transition-all disabled:opacity-50"
                       >
-                        {loading ? "Syncing..." : "Sync Collection"}
+                        {loading ? "..." : t.dashboard.sync_button}
                       </button>
                     </div>
                   </div>
                 ) : (
                   /* DASHBOARD CONTROLS */
                   <>
-                    <div className="flex items-center justify-between mb-6">
+                      <div className="flex items-center justify-between mb-2">
                       <div>
-                        <h3 className="text-[10px] font-bold text-zinc-400 uppercase tracking-[0.2em] mb-1">Authenticated Library</h3>
+                          <h3 className="text-[10px] font-bold text-zinc-400 uppercase tracking-[0.2em] mb-1">{t.dashboard.library_label}</h3>
                         <p className="text-sm font-black text-zinc-900 italic uppercase truncate max-w-[120px]">{profile.bgg_username}</p>
                       </div>
                       <button
                         onClick={() => fetchCollection()}
                         disabled={loading}
-                        title="Manual Refresh"
+                          title={t.dashboard.refresh_collection}
                         className="p-2 hover:bg-primary/5 rounded-lg text-zinc-400 hover:text-primary transition-all disabled:opacity-50"
                       >
                         <RefreshCw className={cn("transition-all", loading && "animate-spin text-primary")} size={18} />
                       </button>
                     </div>
 
+                      <p className="text-[9px] text-zinc-400 font-bold mb-4 bg-zinc-50 border border-zinc-100 rounded-lg p-2 leading-tight">
+                        {t.dashboard.sync_reminder}
+                      </p>
+
                       <div className="relative">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" size={16} />
                         <input
                           type="text"
-                          placeholder="Search collection..."
+                          placeholder={t.dashboard.search_placeholder}
                           className="w-full pl-10 pr-4 py-2 bg-zinc-50 border border-zinc-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-medium"
                           value={search}
                           onChange={(e) => setSearch(e.target.value)}
@@ -357,14 +362,14 @@ export default function Home() {
                           disabled={loading || bulkLoading || filteredCollection.length === 0}
                           className="flex-1 flex items-center justify-center gap-1.5 text-[9px] font-bold uppercase tracking-wider py-1.5 px-2 bg-zinc-50 border border-zinc-100 rounded-md hover:bg-primary/5 hover:border-primary/20 hover:text-primary transition-all disabled:opacity-50"
                         >
-                          {bulkLoading ? "Caching..." : "Add All"}
+                          {bulkLoading ? "..." : t.dashboard.add_all}
                         </button>
                         <button
                           onClick={() => setPrintQueue([])}
                           disabled={printQueue.length === 0}
                           className="flex-1 flex items-center justify-center gap-1.5 text-[9px] font-bold uppercase tracking-wider py-1.5 px-2 bg-zinc-50 border border-zinc-100 rounded-md hover:bg-red-50 hover:border-red-100 hover:text-red-500 transition-all disabled:opacity-50"
                         >
-                          Clear Queue
+                          {t.dashboard.clear_queue}
                         </button>
                       </div>
                   </>
@@ -419,10 +424,10 @@ export default function Home() {
 
               <div className="mb-12 text-center relative z-10">
                 <h2 className="text-3xl font-black text-zinc-900 tracking-tighter mb-2 italic uppercase">
-                  {loadingDetails ? "Fetching Details..." : "Live Preview"}
+                  {loadingDetails ? t.dashboard.fetching_details : t.dashboard.live_preview}
                 </h2>
                 <p className="text-sm text-zinc-500 font-medium">
-                  {loadingDetails ? "Analyzing board game data..." : "Customize your catalog deck card anatomy."}
+                  {loadingDetails ? t.dashboard.analyzing_data : t.dashboard.live_preview_desc}
                 </p>
               </div>
 
@@ -433,7 +438,7 @@ export default function Home() {
                     <GameCard {...selectedGame} {...settings} />
                   ) : (
                     <div className="w-[2.5in] h-[3.5in] bg-zinc-50 rounded-lg flex items-center justify-center border-2 border-dashed border-zinc-200 text-zinc-300 font-bold uppercase text-[10px] tracking-widest text-center px-12">
-                      Select a game to begin customization
+                        {t.dashboard.select_game}
                     </div>
                   )}
                   {loadingDetails && (
@@ -456,7 +461,7 @@ export default function Home() {
                     >
                       {printQueue.some(g => g.id === selectedGame.id) ? <Minus size={20} /> : <Plus size={20} />}
                       <span className="absolute left-14 whitespace-nowrap bg-zinc-900 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover/btn:opacity-100 transition-opacity font-bold uppercase tracking-wider">
-                        {printQueue.some(g => g.id === selectedGame.id) ? "Remove from Queue" : "Add to Queue"}
+                        {printQueue.some(g => g.id === selectedGame.id) ? t.dashboard.remove_from_queue : t.dashboard.add_to_queue}
                       </span>
                     </button>
                   </div>

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { X, Settings, User, Check, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/lib/i18n";
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -14,6 +15,7 @@ interface SettingsModalProps {
 }
 
 export function SettingsModal({ isOpen, onClose, currentUsername, onUpdate, email }: SettingsModalProps) {
+  const { t } = useTranslation();
   const [username, setUsername] = useState(currentUsername);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -67,7 +69,7 @@ export function SettingsModal({ isOpen, onClose, currentUsername, onUpdate, emai
                 <Settings size={24} />
               </div>
               <div>
-                <h2 className="text-2xl font-black text-white italic uppercase tracking-tight">Account Settings</h2>
+                <h2 className="text-2xl font-black text-white italic uppercase tracking-tight">{t.settings.title}</h2>
                 <p className="text-xs text-zinc-500 font-bold uppercase tracking-widest">{email}</p>
               </div>
             </div>
@@ -75,7 +77,7 @@ export function SettingsModal({ isOpen, onClose, currentUsername, onUpdate, emai
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-2">
                 <label className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] ml-1">
-                  BoardGameGeek Username
+                  {t.settings.bgg_label}
                 </label>
                 <div className="relative group">
                   <User className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-primary transition-colors" size={18} />
@@ -89,7 +91,7 @@ export function SettingsModal({ isOpen, onClose, currentUsername, onUpdate, emai
                   />
                 </div>
                 <p className="text-[10px] text-zinc-500 font-medium ml-1">
-                  Changing this will instantly refresh your collection view.
+                  {t.settings.bgg_desc}
                 </p>
               </div>
 
@@ -108,10 +110,10 @@ export function SettingsModal({ isOpen, onClose, currentUsername, onUpdate, emai
                 ) : success ? (
                   <>
                     <Check size={18} />
-                    Updated
+                      {t.settings.updated}
                   </>
                 ) : (
-                  "Update Profile"
+                      t.settings.update_button
                 )}
               </button>
             </form>

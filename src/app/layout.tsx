@@ -17,17 +17,21 @@ export const metadata: Metadata = {
   description: "Transform your BoardGameGeek library into a high-art tactile catalog deck.",
 };
 
+import { I18nProvider } from "@/lib/i18n";
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="es">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {children}
+        <I18nProvider>
+          {children}
+        </I18nProvider>
       </body>
     </html>
   );

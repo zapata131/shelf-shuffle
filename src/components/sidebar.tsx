@@ -1,11 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { SwatchBook, User, Info, Scale, Type, LogOut, LogIn, Settings as SettingsIcon } from "lucide-react";
+import { SwatchBook, User, Info, Scale, Type, LogOut, LogIn, Settings as SettingsIcon, Languages } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/lib/supabase";
 import { AuthModal } from "./auth-modal";
 import { SettingsModal } from "./settings-modal";
+import { useTranslation } from "@/lib/i18n";
 
 interface SidebarProps {
   settings: {
@@ -26,12 +27,13 @@ interface SidebarProps {
 export function Sidebar({
   settings,
   onToggle,
-  queueCount,
+  queueCount, 
   onPrint,
   session,
   profile,
   onUpdateBGG
 }: SidebarProps) {
+  const { t, lang, setLang } = useTranslation();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
@@ -41,11 +43,11 @@ export function Sidebar({
   };
 
   const controls = [
-    { id: "showTitle", label: "Game Title", icon: Type },
-    { id: "showDesigner", label: "Designer", icon: User },
-    { id: "showArtist", label: "Artist", icon: SwatchBook },
-    { id: "showWeight", label: "Complexity Weight", icon: Scale },
-    { id: "showDescription", label: "Description", icon: Info },
+    { id: "showTitle", label: t.sidebar.controls.title, icon: Type },
+    { id: "showDesigner", label: t.sidebar.controls.designer, icon: User },
+    { id: "showArtist", label: t.sidebar.controls.artist, icon: SwatchBook },
+    { id: "showWeight", label: t.sidebar.controls.weight, icon: Scale },
+    { id: "showDescription", label: t.sidebar.controls.description, icon: Info },
   ];
 
   return (
@@ -64,12 +66,34 @@ export function Sidebar({
       />
 
       <div>
-        <h1 className="text-xl font-bold text-primary tracking-tight mb-1">Shelf Shuffler</h1>
-        <p className="text-xs text-zinc-500 font-medium uppercase tracking-[0.1em]">Customization Engine</p>
+        <h1 className="text-xl font-bold text-primary tracking-tight mb-1">{t.app.title}</h1>
+        <p className="text-xs text-zinc-500 font-medium uppercase tracking-[0.1em]">{t.sidebar.engine}</p>
+      </div>
+
+      {/* Language Switcher */}
+      <div className="flex items-center gap-2 p-1 bg-zinc-100 rounded-xl w-fit">
+        <button
+          onClick={() => setLang("es")}
+          className={cn(
+            "px-3 py-1 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all",
+            lang === "es" ? "bg-white text-primary shadow-sm" : "text-zinc-400 hover:text-zinc-600"
+          )}
+        >
+          ES
+        </button>
+        <button
+          onClick={() => setLang("en")}
+          className={cn(
+            "px-3 py-1 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all",
+            lang === "en" ? "bg-white text-primary shadow-sm" : "text-zinc-400 hover:text-zinc-600"
+          )}
+        >
+          EN
+        </button>
       </div>
 
       <div className="space-y-6">
-        <h2 className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Card Anatomy</h2>
+        <h2 className="text-xs font-bold text-zinc-400 uppercase tracking-widest">{t.sidebar.anatomy}</h2>
 
         <div className="space-y-3">
           {controls.map((control) => (
@@ -77,23 +101,23 @@ export function Sidebar({
               key={control.id}
               onClick={() => onToggle(control.id)}
               className={cn(
-                "w-full flex items-center justify-between p-3 rounded-xl border transition-all duration-200 group text-sm font-medium",
+                "w-full flex items-center justify-between p-3 rounded-xl border transition-all duration-200 group text-xs font-black uppercase tracking-wider",
                 settings[control.id as keyof typeof settings]
                   ? "bg-primary/5 border-primary/20 text-primary shadow-sm"
                   : "bg-white border-zinc-100 text-zinc-400 hover:border-zinc-200"
               )}
             >
               <div className="flex items-center gap-3">
-                <control.icon size={18} className={cn("transition-colors", settings[control.id as keyof typeof settings] ? "text-primary" : "text-zinc-300")} />
+                <control.icon size={16} className={cn("transition-colors", settings[control.id as keyof typeof settings] ? "text-primary" : "text-zinc-300")} />
                 <span>{control.label}</span>
               </div>
               <div className={cn(
-                "w-8 h-4 rounded-full relative transition-colors duration-200",
+                "w-7 h-3.5 rounded-full relative transition-colors duration-200",
                 settings[control.id as keyof typeof settings] ? "bg-primary" : "bg-zinc-200"
               )}>
                 <div className={cn(
-                  "absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all duration-200",
-                  settings[control.id as keyof typeof settings] ? "left-4.5" : "left-0.5"
+                  "absolute top-0.5 w-2.5 h-2.5 bg-white rounded-full transition-all duration-200",
+                  settings[control.id as keyof typeof settings] ? "left-4" : "left-0.5"
                 )} />
               </div>
             </button>
@@ -111,8 +135,8 @@ export function Sidebar({
                   {session.user.email?.charAt(0)}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs font-black text-zinc-900 truncate">{profile?.bgg_username || "No Username"}</p>
-                  <p className="text-[9px] text-zinc-500 font-bold uppercase tracking-wider truncate">{session.user.email}</p>
+                  <p className="text-xs font-black text-zinc-900 truncate">{profile?.bgg_username || "..."}</p>
+                  <p className="text-[9px] text-zinc-500 font-bold uppercase tracking-wider truncate">{t.sidebar.member}</p>
                 </div>
               </div>
 
@@ -124,7 +148,7 @@ export function Sidebar({
                   className="flex-1 flex items-center justify-center gap-2 py-2 text-[10px] font-bold uppercase tracking-widest text-zinc-500 hover:text-primary hover:bg-primary/5 rounded-lg transition-all"
                 >
                   <SettingsIcon size={14} />
-                  Settings
+                  {t.sidebar.account_settings}
                 </button>
                 <div className="w-px h-4 bg-zinc-200" />
                 <button
@@ -132,7 +156,7 @@ export function Sidebar({
                   className="flex-1 flex items-center justify-center gap-2 py-2 text-[10px] font-bold uppercase tracking-widest text-zinc-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
                 >
                   <LogOut size={14} />
-                  Out
+                  {t.sidebar.sign_out}
                 </button>
               </div>
             </div>
@@ -142,7 +166,7 @@ export function Sidebar({
                 className="w-full flex items-center justify-center gap-2 py-3 text-[10px] font-bold uppercase tracking-widest text-primary hover:bg-primary/5 rounded-xl border border-primary/10 transition-colors"
             >
               <LogIn size={14} />
-              Sign In to Save
+                {t.sidebar.sign_in}
             </button>
           )}
         </div>
@@ -150,9 +174,9 @@ export function Sidebar({
         <button
           onClick={onPrint}
           disabled={queueCount === 0}
-          className="w-full bg-primary text-white py-4 px-4 rounded-xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:translate-y-0 disabled:shadow-none"
+          className="w-full bg-primary text-white py-4 px-4 rounded-xl font-black uppercase tracking-widest text-[9px] shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:translate-y-0 disabled:shadow-none"
         >
-          Prepare Print Queue ({queueCount})
+          {t.sidebar.prepare_queue} ({queueCount})
         </button>
       </div>
     </div>
