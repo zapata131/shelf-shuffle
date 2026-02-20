@@ -80,17 +80,19 @@ export default function Home() {
     }
   };
 
-  const updateBGGUsername = async () => {
-    if (!session || !bggInput) return;
+  const updateBGGUsername = async (newUsername?: string) => {
+    const targetUsername = newUsername || bggInput;
+    if (!session || !targetUsername) return;
+
     setLoading(true);
     const { error } = await supabase
       .from("profiles")
-      .update({ bgg_username: bggInput })
+      .update({ bgg_username: targetUsername })
       .eq("id", session.user.id);
 
     if (!error) {
-      setProfile({ ...profile, bgg_username: bggInput });
-      fetchCollection(bggInput);
+      setProfile({ ...profile, bgg_username: targetUsername });
+      fetchCollection(targetUsername);
     }
     setLoading(false);
   };
@@ -291,6 +293,9 @@ export default function Home() {
               onToggle={handleToggle}
               queueCount={printQueue.length}
               onPrint={handlePrint}
+              session={session}
+              profile={profile}
+              onUpdateBGG={updateBGGUsername}
             />
 
             <div className="w-80 bg-white border-r border-zinc-200 flex flex-col h-screen shadow-inner">
@@ -309,7 +314,7 @@ export default function Home() {
                         className="w-full px-4 py-2 bg-zinc-50 border border-zinc-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 font-medium"
                       />
                       <button
-                        onClick={updateBGGUsername}
+                        onClick={() => updateBGGUsername()}
                         disabled={loading || !bggInput}
                         className="w-full bg-zinc-900 text-white py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-zinc-800 transition-all disabled:opacity-50"
                       >

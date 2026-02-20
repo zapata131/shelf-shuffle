@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { SwatchBook, User, Info, Scale, Type, LogOut, LogIn } from "lucide-react";
+import { useState } from "react";
+import { SwatchBook, User, Info, Scale, Type, LogOut, LogIn, Settings as SettingsIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/lib/supabase";
 import { AuthModal } from "./auth-modal";
+import { SettingsModal } from "./settings-modal";
 
 interface SidebarProps {
   settings: {
@@ -17,29 +18,25 @@ interface SidebarProps {
   onToggle: (key: string) => void;
   queueCount: number;
   onPrint: () => void;
+  session?: any;
+  profile?: any;
+  onUpdateBGG?: (newUsername: string) => Promise<void>;
 }
 
-export function Sidebar({ settings, onToggle, queueCount, onPrint }: SidebarProps) {
-  const [session, setSession] = useState<any>(null);
+export function Sidebar({
+  settings,
+  onToggle,
+  queueCount,
+  onPrint,
+  session,
+  profile,
+  onUpdateBGG
+}: SidebarProps) {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-
-  useEffect(() => {
-    if (!supabase) return;
-
-    supabase.auth.getSession().then(({ data: { session } }: { data: { session: any } }) => {
-      setSession(session);
-    });
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event: any, session: any) => {
-      setSession(session);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   const handleLogout = async () => {
+    if (!supabase) return;
     await supabase.auth.signOut();
   };
 
@@ -56,6 +53,14 @@ export function Sidebar({ settings, onToggle, queueCount, onPrint }: SidebarProp
       <AuthModal
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}
+      />
+
+      <SettingsModal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        currentUsername={profile?.bgg_username || ""}
+        email={session?.user?.email}
+        onUpdate={onUpdateBGG || (async () => { })}
       />
 
       <div>
@@ -98,30 +103,43 @@ export function Sidebar({ settings, onToggle, queueCount, onPrint }: SidebarProp
 
       <div className="mt-auto space-y-4">
         {/* User Profile Section */}
-        <div className="p-4 bg-zinc-50 rounded-2xl border border-zinc-100">
+        <div className="p-4 bg-zinc-50 rounded-2xl border border-zinc-100 shadow-inner">
           {session ? (
             <div className="flex flex-col gap-3">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs uppercase">
+                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs uppercase border border-primary/10">
                   {session.user.email?.charAt(0)}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs font-bold text-zinc-900 truncate">{session.user.email}</p>
-                  <p className="text-[10px] text-zinc-500 font-medium uppercase tracking-wider">Member</p>
+                  <p className="text-xs font-black text-zinc-900 truncate">{profile?.bgg_username || "No Username"}</p>
+                  <p className="text-[9px] text-zinc-500 font-bold uppercase tracking-wider truncate">{session.user.email}</p>
                 </div>
               </div>
-              <button
-                onClick={handleLogout}
-                className="w-full flex items-center justify-center gap-2 py-2 text-[10px] font-bold uppercase tracking-widest text-zinc-400 hover:text-red-500 transition-colors"
-              >
-                <LogOut size={14} />
-                Sign Out
-              </button>
+
+              <div className="h-px bg-zinc-200 w-full" />
+
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setIsSettingsOpen(true)}
+                  className="flex-1 flex items-center justify-center gap-2 py-2 text-[10px] font-bold uppercase tracking-widest text-zinc-500 hover:text-primary hover:bg-primary/5 rounded-lg transition-all"
+                >
+                  <SettingsIcon size={14} />
+                  Settings
+                </button>
+                <div className="w-px h-4 bg-zinc-200" />
+                <button
+                  onClick={handleLogout}
+                  className="flex-1 flex items-center justify-center gap-2 py-2 text-[10px] font-bold uppercase tracking-widest text-zinc-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                >
+                  <LogOut size={14} />
+                  Out
+                </button>
+              </div>
             </div>
           ) : (
             <button
               onClick={() => setIsAuthModalOpen(true)}
-              className="w-full flex items-center justify-center gap-2 py-2 text-[10px] font-bold uppercase tracking-widest text-primary hover:bg-primary/5 rounded-lg transition-colors"
+                className="w-full flex items-center justify-center gap-2 py-3 text-[10px] font-bold uppercase tracking-widest text-primary hover:bg-primary/5 rounded-xl border border-primary/10 transition-colors"
             >
               <LogIn size={14} />
               Sign In to Save
@@ -132,7 +150,7 @@ export function Sidebar({ settings, onToggle, queueCount, onPrint }: SidebarProp
         <button
           onClick={onPrint}
           disabled={queueCount === 0}
-          className="w-full bg-primary text-white py-3 px-4 rounded-xl font-bold text-sm shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:translate-y-0 disabled:shadow-none"
+          className="w-full bg-primary text-white py-4 px-4 rounded-xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:translate-y-0 disabled:shadow-none"
         >
           Prepare Print Queue ({queueCount})
         </button>
