@@ -1,18 +1,20 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Sidebar } from "@/components/sidebar";
 import { GameCard } from "@/components/game-card";
 import { PrintView } from "@/components/print-view";
-import { Search, Loader2, Plus, Minus } from "lucide-react";
+import { Search, Loader2, Plus, Minus, Check, Eye } from "lucide-react";
 import { useReactToPrint } from "react-to-print";
 import { BGGCollectionItem } from "@/lib/bgg";
 import { NormalizedGame } from "@/lib/normalizer";
+import { cn } from "@/lib/utils";
 
 export default function Home() {
   const [username, setUsername] = useState("zapata131");
   const [collection, setCollection] = useState<BGGCollectionItem[]>([]);
   const [loading, setLoading] = useState(false);
+  const [bulkLoading, setBulkLoading] = useState(false);
   const [search, setSearch] = useState("");
   const [selectedGame, setSelectedGame] = useState<NormalizedGame | null>(null);
   const [loadingDetails, setLoadingDetails] = useState(false);
@@ -25,6 +27,7 @@ export default function Home() {
   });
 
   const [settings, setSettings] = useState({
+    showTitle: true,
     showDesigner: true,
     showArtist: true,
     showWeight: true,
@@ -66,6 +69,22 @@ export default function Home() {
     }
   };
 
+  const toggleQueueItem = async (e: React.MouseEvent | null, item: BGGCollectionItem) => {
+    if (e) e.stopPropagation();
+    const existing = printQueue.find(g => g.id === item.id);
+    if (existing) {
+      setPrintQueue(prev => prev.filter(g => g.id !== item.id));
+    } else {
+      try {
+        const res = await fetch(`/api/bgg/game/${item.id}`);
+        const data = await res.json();
+        setPrintQueue(prev => [...prev, data]);
+      } catch (e) {
+        console.error("Failed to add to queue:", e);
+      }
+    }
+  };
+
   const addToQueue = () => {
     if (selectedGame && !printQueue.find(g => g.id === selectedGame.id)) {
       setPrintQueue(prev => [...prev, selectedGame]);
@@ -76,6 +95,42 @@ export default function Home() {
     if (selectedGame) {
       setPrintQueue(prev => prev.filter(g => g.id !== selectedGame.id));
     }
+  };
+
+  const addAllToQueue = async () => {
+    if (collection.length === 0) return;
+    setBulkLoading(true);
+    try {
+      const batchSize = 20;
+      const allNormalized: NormalizedGame[] = [];
+      const filteredIds = filteredCollection.map(item => item.id);
+
+      for (let i = 0; i < filteredIds.length; i += batchSize) {
+        const batch = filteredIds.slice(i, i + batchSize);
+        const ids = batch.join(",");
+        const res = await fetch(`/api/bgg/game/${ids}`);
+        const data = await res.json();
+        if (Array.isArray(data)) {
+          allNormalized.push(...data);
+        } else {
+          allNormalized.push(data);
+        }
+      }
+
+      setPrintQueue(prev => {
+        const existingIds = new Set(prev.map(g => g.id));
+        const newItems = allNormalized.filter(g => !existingIds.has(g.id));
+        return [...prev, ...newItems];
+      });
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setBulkLoading(false);
+    }
+  };
+
+  const removeAllFromQueue = () => {
+    setPrintQueue([]);
   };
 
   const isInQueue = selectedGame ? printQueue.some(g => g.id === selectedGame.id) : false;
@@ -95,7 +150,7 @@ export default function Home() {
     <main className="flex min-h-screen bg-background text-foreground overflow-hidden">
       <Sidebar
         settings={settings}
-        onToggle={handleToggle}
+        onToggle={handleToggle} 
         queueCount={printQueue.length}
         onPrint={handlePrint}
       />
@@ -113,40 +168,86 @@ export default function Home() {
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
-          <div className="mt-4 flex items-center justify-between">
-            <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">
-              {filteredCollection.length} Games Found
-            </p>
-            {loading && <Loader2 className="animate-spin text-primary" size={14} />}
+          <div className="mt-4">
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">
+                {filteredCollection.length} Games Found
+              </p>
+              {(loading || bulkLoading) && <Loader2 className="animate-spin text-primary" size={14} />}
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={addAllToQueue}
+                disabled={loading || bulkLoading || filteredCollection.length === 0}
+                className="flex-1 flex items-center justify-center gap-1.5 text-[9px] font-bold uppercase tracking-wider py-1.5 px-2 bg-zinc-50 border border-zinc-100 rounded-md hover:bg-primary/5 hover:border-primary/20 hover:text-primary transition-all disabled:opacity-50"
+              >
+                {bulkLoading ? "Adding..." : "Add All"}
+              </button>
+              <button
+                onClick={removeAllFromQueue}
+                disabled={loading || bulkLoading || printQueue.length === 0}
+                className="flex-1 flex items-center justify-center gap-1.5 text-[9px] font-bold uppercase tracking-wider py-1.5 px-2 bg-zinc-50 border border-zinc-100 rounded-md hover:bg-red-50 hover:border-red-100 hover:text-red-500 transition-all disabled:opacity-50"
+              >
+                Remove All
+              </button>
+            </div>
           </div>
         </div>
 
         <div className="flex-1 overflow-y-auto p-4 space-y-2">
           {filteredCollection.map((item) => {
             const inQueue = printQueue.some(g => g.id === item.id);
+            const isSelected = selectedGame?.id === item.id;
+
             return (
               <button
                 key={item.id}
                 onClick={() => loadGameDetails(item.id)}
-                className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all duration-200 group text-left relative ${selectedGame?.id === item.id
-                    ? "bg-primary/5 border border-primary/20 shadow-sm"
+                className={cn(
+                  "w-full flex items-center gap-3 p-3 rounded-xl transition-all duration-200 group text-left relative overflow-hidden",
+                  isSelected
+                    ? "bg-primary/5 border border-primary/20 shadow-sm" 
                     : "hover:bg-zinc-50 border border-transparent"
-                  }`}
+                )}
               >
-                <div className="w-12 h-12 rounded-lg overflow-hidden bg-zinc-100 flex-shrink-0 border border-zinc-100 shadow-sm transition-transform group-hover:scale-105">
+                {/* Visual indicator bar on the left */}
+                {inQueue && (
+                  <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary shadow-[2px_0_10px_rgba(131,103,199,0.5)] z-10" />
+                )}
+
+                <div className="w-12 h-12 rounded-lg overflow-hidden bg-zinc-100 flex-shrink-0 border border-zinc-100 shadow-sm transition-transform group-hover:scale-105 relative">
                   <img src={item.thumbnail} alt={item.name} className="w-full h-full object-cover" />
+                  {inQueue && (
+                    <div className="absolute inset-0 bg-primary/20 backdrop-blur-[1px] flex items-center justify-center">
+                      <Check className="text-white drop-shadow-md" size={16} />
+                    </div>
+                  )}
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className={`text-sm font-bold truncate ${selectedGame?.id === item.id ? "text-primary" : "text-carbon-suave"}`}>
+                <div className="flex-1 min-w-0 pr-8">
+                  <p className={cn(
+                    "text-sm font-bold truncate transition-colors",
+                    isSelected ? "text-primary" : "text-carbon-suave",
+                    inQueue && !isSelected && "text-primary/70"
+                  )}>
                     {item.name}
                   </p>
                   <p className="text-[10px] text-zinc-400 font-medium">
                     {item.yearpublished || "N/A"}
                   </p>
                 </div>
-                {inQueue && (
-                  <div className="w-2 h-2 rounded-full bg-primary absolute top-3 right-3 shadow-sm shadow-primary/40" />
-                )}
+
+                {/* Direct Queue Toggle Button */}
+                <span
+                  onClick={(e) => toggleQueueItem(e, item)}
+                  className={cn(
+                    "absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full flex items-center justify-center transition-all border shadow-sm",
+                    inQueue
+                      ? "bg-primary text-white border-primary"
+                      : "bg-white text-zinc-400 border-zinc-100 opacity-0 group-hover:opacity-100 hover:border-primary/30 hover:text-primary"
+                  )}
+                >
+                  {inQueue ? <Check size={14} /> : <Plus size={14} />}
+                </span>
               </button>
             );
           })}
@@ -169,7 +270,7 @@ export default function Home() {
 
           <div className={`relative shadow-2xl transition-all duration-500 ${loadingDetails ? 'opacity-50 scale-95' : 'shadow-carbon-suave/20 hover:shadow-primary/20 hover:-translate-y-2'}`}>
             {selectedGame ? (
-              <GameCard
+              <GameCard 
                 {...selectedGame}
                 {...settings}
               />
@@ -190,7 +291,7 @@ export default function Home() {
           {selectedGame && !loadingDetails && (
             <div className="absolute top-0 -right-20 flex flex-col gap-4">
               {isInQueue ? (
-                <button
+                <button 
                   onClick={removeFromQueue}
                   className="w-12 h-12 bg-white border border-zinc-100 rounded-full flex items-center justify-center text-zinc-400 hover:text-red-500 hover:border-red-100 hover:bg-red-50 transition-all shadow-sm group/btn"
                 >
@@ -198,7 +299,7 @@ export default function Home() {
                   <span className="absolute left-14 whitespace-nowrap bg-zinc-800 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover/btn:opacity-100 transition-opacity font-bold uppercase tracking-wider">Remove from Queue</span>
                 </button>
               ) : (
-                <button
+                  <button 
                   onClick={addToQueue}
                   className="w-12 h-12 bg-primary text-white rounded-full flex items-center justify-center shadow-lg shadow-primary/20 hover:bg-primary/90 hover:scale-110 transition-all group/btn"
                 >

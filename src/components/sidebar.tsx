@@ -1,10 +1,11 @@
 "use client";
 
-import { SwatchBook, User, Info, Scale } from "lucide-react";
+import { SwatchBook, User, Info, Scale, Type } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface SidebarProps {
   settings: {
+    showTitle: boolean;
     showDesigner: boolean;
     showArtist: boolean;
     showWeight: boolean;
@@ -17,6 +18,7 @@ interface SidebarProps {
 
 export function Sidebar({ settings, onToggle, queueCount, onPrint }: SidebarProps) {
   const controls = [
+    { id: "showTitle", label: "Game Title", icon: Type },
     { id: "showDesigner", label: "Designer", icon: User },
     { id: "showArtist", label: "Artist", icon: SwatchBook },
     { id: "showWeight", label: "Complexity Weight", icon: Scale },
