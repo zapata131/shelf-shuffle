@@ -142,20 +142,19 @@ export function Sidebar({
 
               <div className="h-px bg-zinc-200 w-full" />
 
-              <div className="flex items-center gap-2">
+              <div className="flex flex-col gap-1">
                 <button
                   onClick={() => setIsSettingsOpen(true)}
-                  className="flex-1 flex items-center justify-center gap-2 py-2 text-[10px] font-bold uppercase tracking-widest text-zinc-500 hover:text-primary hover:bg-primary/5 rounded-lg transition-all"
+                  className="w-full flex items-center gap-3 px-3 py-2.5 text-[10px] font-bold uppercase tracking-widest text-zinc-500 hover:text-primary hover:bg-primary/5 rounded-xl transition-all group"
                 >
-                  <SettingsIcon size={14} />
+                  <SettingsIcon size={14} className="group-hover:rotate-45 transition-transform" />
                   {t.sidebar.account_settings}
                 </button>
-                <div className="w-px h-4 bg-zinc-200" />
                 <button
                   onClick={handleLogout}
-                  className="flex-1 flex items-center justify-center gap-2 py-2 text-[10px] font-bold uppercase tracking-widest text-zinc-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                  className="w-full flex items-center gap-3 px-3 py-2.5 text-[10px] font-bold uppercase tracking-widest text-zinc-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all group"
                 >
-                  <LogOut size={14} />
+                  <LogOut size={14} className="group-hover:-translate-x-1 transition-transform" />
                   {t.sidebar.sign_out}
                 </button>
               </div>
@@ -178,6 +177,15 @@ export function Sidebar({
         >
           {t.sidebar.prepare_queue} ({queueCount})
         </button>
+
+        <a
+          href="https://boardgamegeek.com"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex flex-col items-center pt-2 opacity-20 grayscale hover:opacity-100 transition-all duration-300 hover:scale-110"
+        >
+          <img src="/bgg-powered.png" alt="Powered by BGG" className="h-6 object-contain" />
+        </a>
       </div>
     </div>
   );

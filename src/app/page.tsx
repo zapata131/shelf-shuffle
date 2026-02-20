@@ -282,7 +282,14 @@ export default function Home() {
                 <LogIn size={20} />
                 {t.landing.get_started}
               </button>
-              <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-[0.2em]">{t.app.powered_by}</p>
+              <a
+                href="https://boardgamegeek.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="opacity-30 grayscale hover:opacity-100 transition-all duration-500 hover:scale-105"
+              >
+                <img src="/bgg-powered.png" alt="Powered by BGG" className="h-10 object-contain" />
+              </a>
             </div>
           </motion.div>
         </div>
