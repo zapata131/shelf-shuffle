@@ -40,7 +40,21 @@ npm install
 ```
 
 ### 2. Environment Setup
-Create a `.env.local` file in the root directory and add any necessary environment variables (if configured for advanced features).
+Create a `.env.local` file in the root directory and add your credentials:
+```env
+# BGG API (Optional)
+BGG_API_KEY=your_key_here
+
+# Supabase Configuration
+NEXT_PUBLIC_SUPABASE_URL=your_project_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
+```
+
+### 3. Database Migration
+To enable user profiles and BGG mapping:
+1. Go to your **Supabase Dashboard** > **SQL Editor**.
+2. Copy the contents of [`supabase_migration.sql`](file:///Users/joseluiszapata/Documents/GitHub/shelf-shuffle/supabase_migration.sql).
+3. Paste and **Run** the script.
 
 ### 3. Running Locally
 Launch the development server:

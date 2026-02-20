@@ -1,7 +1,10 @@
 "use client";
 
-import { SwatchBook, User, Info, Scale, Type } from "lucide-react";
+import { useState, useEffect } from "react";
+import { SwatchBook, User, Info, Scale, Type, LogOut, LogIn } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/lib/supabase";
+import { AuthModal } from "./auth-modal";
 
 interface SidebarProps {
   settings: {
@@ -17,6 +20,29 @@ interface SidebarProps {
 }
 
 export function Sidebar({ settings, onToggle, queueCount, onPrint }: SidebarProps) {
+  const [session, setSession] = useState<any>(null);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+
+  useEffect(() => {
+    if (!supabase) return;
+
+    supabase.auth.getSession().then(({ data: { session } }: { data: { session: any } }) => {
+      setSession(session);
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event: any, session: any) => {
+      setSession(session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+  };
+
   const controls = [
     { id: "showTitle", label: "Game Title", icon: Type },
     { id: "showDesigner", label: "Designer", icon: User },
@@ -27,6 +53,11 @@ export function Sidebar({ settings, onToggle, queueCount, onPrint }: SidebarProp
 
   return (
     <div className="w-64 bg-white/50 backdrop-blur-xl border-r border-zinc-200 h-screen p-6 flex flex-col gap-8 shadow-sm">
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+      />
+
       <div>
         <h1 className="text-xl font-bold text-primary tracking-tight mb-1">Shelf Shuffler</h1>
         <p className="text-xs text-zinc-500 font-medium uppercase tracking-[0.1em]">Customization Engine</p>
@@ -65,7 +96,39 @@ export function Sidebar({ settings, onToggle, queueCount, onPrint }: SidebarProp
         </div>
       </div>
 
-      <div className="mt-auto">
+      <div className="mt-auto space-y-4">
+        {/* User Profile Section */}
+        <div className="p-4 bg-zinc-50 rounded-2xl border border-zinc-100">
+          {session ? (
+            <div className="flex flex-col gap-3">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs uppercase">
+                  {session.user.email?.charAt(0)}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-bold text-zinc-900 truncate">{session.user.email}</p>
+                  <p className="text-[10px] text-zinc-500 font-medium uppercase tracking-wider">Member</p>
+                </div>
+              </div>
+              <button
+                onClick={handleLogout}
+                className="w-full flex items-center justify-center gap-2 py-2 text-[10px] font-bold uppercase tracking-widest text-zinc-400 hover:text-red-500 transition-colors"
+              >
+                <LogOut size={14} />
+                Sign Out
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => setIsAuthModalOpen(true)}
+              className="w-full flex items-center justify-center gap-2 py-2 text-[10px] font-bold uppercase tracking-widest text-primary hover:bg-primary/5 rounded-lg transition-colors"
+            >
+              <LogIn size={14} />
+              Sign In to Save
+            </button>
+          )}
+        </div>
+
         <button
           onClick={onPrint}
           disabled={queueCount === 0}
