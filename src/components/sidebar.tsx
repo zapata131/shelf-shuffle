@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { SwatchBook, User, Info, Scale, Type, LogOut, LogIn, Settings as SettingsIcon, Languages } from "lucide-react";
+import { SwatchBook, User, Info, Scale, Type, LogOut, LogIn, Settings as SettingsIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/lib/supabase";
 import { AuthModal } from "./auth-modal";
@@ -35,7 +35,7 @@ export function Sidebar({
   onUpdateBGG,
   onOpenSettings
 }: SidebarProps) {
-  const { t, lang, setLang } = useTranslation();
+  const { t } = useTranslation();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
   const handleLogout = async () => {
@@ -63,27 +63,6 @@ export function Sidebar({
         <p className="text-xs text-zinc-500 font-medium uppercase tracking-[0.1em]">{t.sidebar.engine}</p>
       </div>
 
-      {/* Language Switcher */}
-      <div className="flex items-center gap-2 p-1 bg-zinc-100 rounded-xl w-fit">
-        <button
-          onClick={() => setLang("es")}
-          className={cn(
-            "px-3 py-1 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all",
-            lang === "es" ? "bg-white text-primary shadow-sm" : "text-zinc-400 hover:text-zinc-600"
-          )}
-        >
-          ES
-        </button>
-        <button
-          onClick={() => setLang("en")}
-          className={cn(
-            "px-3 py-1 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all",
-            lang === "en" ? "bg-white text-primary shadow-sm" : "text-zinc-400 hover:text-zinc-600"
-          )}
-        >
-          EN
-        </button>
-      </div>
 
       <div className="space-y-6">
         <h2 className="text-xs font-bold text-zinc-400 uppercase tracking-widest">{t.sidebar.anatomy}</h2>

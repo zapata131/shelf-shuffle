@@ -2,6 +2,7 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { User, SwatchBook } from "lucide-react";
+import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { VibeBar } from "./vibe-bar";
 
@@ -76,12 +77,14 @@ export function GameCard({
         </AnimatePresence>
 
         {/* Artwork Area */}
-        <div className="relative flex-1 min-h-0 overflow-hidden z-0">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
+        <div className="relative flex-1 min-h-0 overflow-hidden z-0 bg-zinc-800">
+          <Image
             src={image}
             alt={title}
-            className="w-full h-full object-cover object-top transition-transform duration-1000 group-hover/card:scale-110 print:transform-none"
+            fill
+            sizes="2.5in"
+            priority
+            className="object-cover object-top transition-transform duration-1000 group-hover/card:scale-110 print:transform-none"
           />
           <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/70 print:bg-black/40" />
 

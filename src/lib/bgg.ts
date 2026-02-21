@@ -24,10 +24,24 @@ const FETCH_HEADERS = {
   ...(BGG_API_KEY ? { "Authorization": `Bearer ${BGG_API_KEY}` } : {}),
 };
 
+const MAX_RETRIES = 5;
+const RETRY_DELAY = 2000;
+
+async function fetchWithRetry(url: string, attempts = 0): Promise<Response> {
+  const response = await fetch(url, { headers: FETCH_HEADERS });
+
+  if (response.status === 202 && attempts < MAX_RETRIES) {
+    await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
+    return fetchWithRetry(url, attempts + 1);
+  }
+
+  return response;
+}
+
 export async function getBGGCollection(username: string): Promise<BGGCollectionItem[]> {
-  const response = await fetch(`${BGG_API_BASE}/collection?username=${username}&own=1`, {
-    headers: FETCH_HEADERS,
-  });
+  const url = `${BGG_API_BASE}/collection?username=${username}&own=1`;
+  const response = await fetchWithRetry(url);
+
   if (!response.ok) {
     throw new Error(`Failed to fetch collection for ${username}: ${response.status} ${response.statusText}`);
   }
@@ -52,9 +66,9 @@ export async function getBGGCollection(username: string): Promise<BGGCollectionI
 
 export async function getBGGGameDetails(ids: string | string[]) {
   const idString = Array.isArray(ids) ? ids.join(",") : ids;
-  const response = await fetch(`${BGG_API_BASE}/thing?id=${idString}&stats=1`, {
-    headers: FETCH_HEADERS,
-  });
+  const url = `${BGG_API_BASE}/thing?id=${idString}&stats=1`;
+  const response = await fetchWithRetry(url);
+
   if (!response.ok) {
     throw new Error(`Failed to fetch game details for ${idString}: ${response.status} ${response.statusText}`);
   }

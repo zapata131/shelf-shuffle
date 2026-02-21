@@ -18,6 +18,9 @@ export const metadata: Metadata = {
 };
 
 import { I18nProvider } from "@/lib/i18n";
+import { ToastProvider } from "@/lib/contexts/toast-context";
+import { LibraryProvider } from "@/lib/contexts/library-context";
+import { PrintProvider } from "@/lib/contexts/print-context";
 
 export default function RootLayout({
   children,
@@ -30,7 +33,13 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <I18nProvider>
-          {children}
+          <ToastProvider>
+            <LibraryProvider>
+              <PrintProvider>
+                {children}
+              </PrintProvider>
+            </LibraryProvider>
+          </ToastProvider>
         </I18nProvider>
       </body>
     </html>
