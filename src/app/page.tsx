@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { Sidebar } from "@/components/sidebar";
 import { GameCard } from "@/components/game-card";
 import { PrintView } from "@/components/print-view";
+import { SettingsModal } from "@/components/settings-modal";
 import { Search, Loader2, Plus, Minus, Check, RefreshCw, LogIn, LayoutGrid, Zap, Printer } from "lucide-react";
 import { useReactToPrint } from "react-to-print";
 import { BGGCollectionItem } from "@/lib/bgg";
@@ -29,6 +30,7 @@ export default function Home() {
   const [loadingDetails, setLoadingDetails] = useState(false);
   const [printQueue, setPrintQueue] = useState<NormalizedGame[]>([]);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   const contentRef = useRef<HTMLDivElement>(null);
   const handlePrint = useReactToPrint({
@@ -304,6 +306,15 @@ export default function Home() {
               session={session}
               profile={profile}
               onUpdateBGG={updateBGGUsername}
+              onOpenSettings={() => setIsSettingsOpen(true)}
+            />
+
+            <SettingsModal
+              isOpen={isSettingsOpen}
+              onClose={() => setIsSettingsOpen(false)}
+              currentUsername={profile?.bgg_username || ""}
+              email={session?.user?.email}
+              onUpdate={updateBGGUsername}
             />
 
             <div className="w-80 bg-white border-r border-zinc-200 flex flex-col h-screen shadow-inner">

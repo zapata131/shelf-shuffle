@@ -22,6 +22,7 @@ interface SidebarProps {
   session?: any;
   profile?: any;
   onUpdateBGG?: (newUsername: string) => Promise<void>;
+  onOpenSettings?: () => void;
 }
 
 export function Sidebar({
@@ -31,11 +32,11 @@ export function Sidebar({
   onPrint,
   session,
   profile,
-  onUpdateBGG
+  onUpdateBGG,
+  onOpenSettings
 }: SidebarProps) {
   const { t, lang, setLang } = useTranslation();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   const handleLogout = async () => {
     if (!supabase) return;
@@ -55,14 +56,6 @@ export function Sidebar({
       <AuthModal
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}
-      />
-
-      <SettingsModal
-        isOpen={isSettingsOpen}
-        onClose={() => setIsSettingsOpen(false)}
-        currentUsername={profile?.bgg_username || ""}
-        email={session?.user?.email}
-        onUpdate={onUpdateBGG || (async () => { })}
       />
 
       <div>
@@ -144,7 +137,7 @@ export function Sidebar({
 
               <div className="flex flex-col gap-1">
                 <button
-                  onClick={() => setIsSettingsOpen(true)}
+                  onClick={onOpenSettings}
                   className="w-full flex items-center gap-3 px-3 py-2.5 text-[10px] font-bold uppercase tracking-widest text-zinc-500 hover:text-primary hover:bg-primary/5 rounded-xl transition-all group"
                 >
                   <SettingsIcon size={14} className="group-hover:rotate-45 transition-transform" />
